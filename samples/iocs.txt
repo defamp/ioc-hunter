@@ -1,0 +1,7 @@
+# Sample indicators for `ioc-hunter -f samples/iocs.txt --demo`
+# Lines starting with # are ignored. Defanged IOCs are supported.
+8.8.8.8
+185.220.101.1
+malware-c2[.]example
+hxxps://malware-c2[.]example/payload
+44d88612fea8a8f36de82e1278abb02f
