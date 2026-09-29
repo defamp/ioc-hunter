@@ -34,6 +34,8 @@ class OTXProvider(BaseProvider):
         )
         if resp.status_code == 403:
             return self._error(ioc, "invalid API key (403)")
+        if resp.status_code == 429:
+            return self._error(ioc, "rate limit exceeded (429)")
         if resp.status_code == 404:
             return ProviderResult(
                 provider=self.name, ioc=ioc, success=True,

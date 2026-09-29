@@ -80,13 +80,29 @@ ioc-hunter --providers virustotal,otx malware.example
 
 | Flag | Description |
 |------|-------------|
-| `-f, --file PATH` | Read indicators from a file (one per line, `#` comments allowed) |
+| `-f, --file PATH` | Read indicators from a file (one per line; `#` starts a comment at line start or after whitespace, so URL fragments like `…/login#token` are kept) |
 | `--providers LIST` | Comma-separated subset: `virustotal,abuseipdb,otx` |
 | `--demo` | Offline demo mode (canned data, no API keys) |
+| `--allow-internal` | Also send private IPs and internal hostnames to the providers (off by default) |
 | `--summary` | Compact one-row-per-IOC table |
 | `--json` | JSON to stdout (redirect to save) |
 | `--html PATH` | Write a standalone HTML report |
 | `--no-color` | Disable coloured output |
+
+## 🔒 Internal indicators stay internal
+
+Every lookup sends the indicator to a third party (and VirusTotal lookups can be
+visible to other users of the platform). By default IOC Hunter therefore **does
+not query** indicators that only make sense inside your network:
+
+- non-global IPs: RFC 1918, loopback, link-local, CGNAT (100.64/10), unique-local IPv6, …
+- internal hostnames: `.local`, `.localhost`, `.localdomain`, `.internal`,
+  `.intranet`, `.corp`, `.lan`, `.home`, `.home.arpa`, `.private`
+- URLs whose host is one of the above
+
+They still appear in the output with a `not queried: …` note. Pass
+`--allow-internal` if you really want them sent. Hashes are always queried —
+they can't be classified as internal.
 
 ## 🧠 How the verdict works
 
@@ -123,7 +139,7 @@ pip install pytest
 pytest -q
 ```
 
-All tests are offline (no network / API keys required).
+All tests are offline (no network / API keys required): provider calls run against a mocked HTTP layer. CI runs them on Python 3.8–3.13.
 
 ## ⚠️ Disclaimer
 

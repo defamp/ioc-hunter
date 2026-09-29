@@ -48,7 +48,8 @@ def print_reports(reports: List[IOCReport], console: Console) -> None:
         body.add_column()
         body.add_column()
         if not report.results:
-            body.add_row("", Text("no supported provider for this indicator", style="dim"), "")
+            empty = report.note or "no supported provider for this indicator"
+            body.add_row("", Text(empty, style="dim"), "")
         for r in report.results:
             if r.success:
                 detail = r.summary
@@ -81,7 +82,9 @@ def print_summary_table(reports: List[IOCReport], console: Console) -> None:
             report.ioc,
             report.ioc_type.value,
             _verdict_text(report.verdict),
-            f"{report.malicious_sources}/{report.checked_sources}",
+            f"{report.malicious_sources}/{report.checked_sources}"
+            if not report.note
+            else "skipped",
         )
     console.print(table)
 
@@ -119,7 +122,9 @@ def to_html(reports: List[IOCReport]) -> str:
                 s=html.escape(r.summary or (r.error or "")),
             )
             for r in report.results
-        ) or "<div class='pv'><span class='ps'>no supported provider</span></div>"
+        ) or "<div class='pv'><span class='ps'>{}</span></div>".format(
+            html.escape(report.note or "no supported provider")
+        )
         rows.append(
             "<div class='card'>"
             "<div class='ioc'>{ioc} <span class='type'>{t}</span></div>"
