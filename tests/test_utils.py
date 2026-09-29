@@ -58,3 +58,27 @@ def test_report_aggregates_worst_verdict():
     assert report.verdict is Verdict.MALICIOUS
     assert report.malicious_sources == 1
     assert report.checked_sources == 2
+
+
+def test_parse_iocs_keeps_url_fragments():
+    raw = ["https://evil.com/login#session=abc", "hxxps://evil[.]com/p#x  # note"]
+    assert parse_iocs(raw) == ["https://evil.com/login#session=abc", "https://evil.com/p#x"]
+
+
+def test_parse_iocs_inline_comment_after_whitespace():
+    assert parse_iocs(["8.8.8.8 # dns", "\t# indented comment", "1.1.1.1\t#tab"]) == [
+        "8.8.8.8",
+        "1.1.1.1",
+    ]
+
+
+def test_internal_reason():
+    from ioc_hunter.utils import internal_reason
+
+    assert internal_reason("10.0.0.1", IOCType.IPV4) == "private/non-routable IP"
+    assert internal_reason("::1", IOCType.IPV6) == "private/non-routable IP"
+    assert internal_reason("nas.home.arpa", IOCType.DOMAIN) == "internal hostname"
+    assert internal_reason("http://192.168.1.1/", IOCType.URL) == "private/non-routable IP"
+    assert internal_reason("8.8.8.8", IOCType.IPV4) is None
+    assert internal_reason("evil.example", IOCType.DOMAIN) is None
+    assert internal_reason("d41d8cd98f00b204e9800998ecf8427e", IOCType.MD5) is None

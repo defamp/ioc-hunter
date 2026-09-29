@@ -35,6 +35,11 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("-f", "--file", help="read indicators from a file (one per line, # comments ok)")
     parser.add_argument("--providers", help="comma-separated subset: virustotal,abuseipdb,otx")
     parser.add_argument("--demo", action="store_true", help="offline demo mode (no API keys needed)")
+    parser.add_argument(
+        "--allow-internal",
+        action="store_true",
+        help="also send private IPs and internal hostnames (.local, .corp, …) to the providers",
+    )
     parser.add_argument("--summary", action="store_true", help="print compact summary table only")
     parser.add_argument("--json", action="store_true",
                         help="output JSON to stdout (redirect to a file to save)")
@@ -57,7 +62,7 @@ def main(argv=None) -> int:
 
     selected = [p.strip() for p in args.providers.split(",")] if args.providers else None
     providers = build_providers(selected=selected, demo=args.demo)
-    enricher = Enricher(providers)
+    enricher = Enricher(providers, allow_internal=args.allow_internal)
 
     if not args.demo and not enricher.active_providers:
         err.print(

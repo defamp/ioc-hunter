@@ -13,7 +13,7 @@ from .providers import (
     VirusTotalProvider,
     demo_providers,
 )
-from .utils import detect_type
+from .utils import detect_type, internal_reason
 
 # Maps a friendly --providers name to its class + env var holding the key.
 _REGISTRY = {
@@ -49,8 +49,9 @@ def build_providers(
 class Enricher:
     """Runs a set of providers over indicators and returns reports."""
 
-    def __init__(self, providers: List[BaseProvider]):
+    def __init__(self, providers: List[BaseProvider], allow_internal: bool = False):
         self.providers = providers
+        self.allow_internal = allow_internal
 
     @property
     def active_providers(self) -> List[str]:
@@ -62,6 +63,11 @@ class Enricher:
 
         if ioc_type is IOCType.UNKNOWN:
             return report  # nothing we can query
+
+        reason = None if self.allow_internal else internal_reason(ioc, ioc_type)
+        if reason:
+            report.note = f"not queried: {reason} (use --allow-internal to send it anyway)"
+            return report
 
         for provider in self.providers:
             if provider.supports(ioc_type):

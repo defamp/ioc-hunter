@@ -82,6 +82,7 @@ class IOCReport:
     ioc: str
     ioc_type: IOCType
     results: List[ProviderResult] = field(default_factory=list)
+    note: Optional[str] = None  # e.g. why the indicator was not queried
 
     @property
     def verdict(self) -> Verdict:
@@ -107,6 +108,7 @@ class IOCReport:
             "malicious_sources": self.malicious_sources,
             "checked_sources": self.checked_sources,
             "results": [r.to_dict() for r in self.results],
+            "note": self.note,
         }
 
 
